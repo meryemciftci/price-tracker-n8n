@@ -1,0 +1,92 @@
+services:
+  # N8N Service
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: price_tracker_n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      # Temel N8N Ayarları
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=admin123
+
+      # Veritabanı Bağlantısı
+      - DB_TYPE=mysqldb
+      - DB_MYSQLDB_HOST=mysql
+      - DB_MYSQLDB_PORT=3306
+      - DB_MYSQLDB_DATABASE=n8n_price_tracker
+      - DB_MYSQLDB_USER=n8n_user
+      - DB_MYSQLDB_PASSWORD=n8n_password
+
+      # Workflow Ayarları
+      - EXECUTIONS_PROCESS=main
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+      - EXECUTIONS_DATA_MAX_AGE=336 # 2 weeks
+
+      # Güvenlik
+      - N8N_METRICS=true
+      - WEBHOOK_URL=http://localhost:5678/
+
+      # Timezone
+      - TZ=Europe/Istanbul
+
+    volumes:
+      - ./data:/home/node/.n8n
+      - ./workflows:/home/node/.n8n/workflows
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - price_tracker_net
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: price_tracker_mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306" 
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=n8n_price_tracker
+      - MYSQL_USER=n8n_user
+      - MYSQL_PASSWORD=n8n_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root"]
+      timeout: 5s
+      retries: 10
+      interval: 10s
+    networks:
+      - price_tracker_net
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: price_tracker_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80" 
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=
+      - PMA_ARBITRARY=1
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - price_tracker_net
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  price_tracker_net:
+    driver: bridge

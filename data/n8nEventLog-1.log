@@ -1,0 +1,2 @@
+{"__type":"$$EventMessageNode","id":"d857ab21-7de9-4ee3-bd47-c1b2147fe5d8","ts":"2025-09-28T15:00:11.520+03:00","eventName":"n8n.node.finished","message":"n8n.node.finished","payload":{"workflowId":"3RVD3oRQRAbuhte8","workflowName":"Trendyol Price Scraper","executionId":"10","nodeType":"n8n-nodes-base.splitInBatches","nodeName":"Loop Over Items","nodeId":"22adf06d-0e71-4da8-a047-00c12af879d1"}}
+{"__type":"$$EventMessageConfirm","confirm":"d857ab21-7de9-4ee3-bd47-c1b2147fe5d8","ts":"2025-09-28T15:15:50.043+03:00","source":{"id":"0","name":"eventBus"}}
